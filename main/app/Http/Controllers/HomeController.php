@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\File;
 
 use App\Mail\TestMail;
 
@@ -38,6 +39,8 @@ class HomeController extends Controller
         $request->validate([
             'icon'=>'required|file'
         ]);
+
+        $this->deleteUserIcon();
         
         $image=$request->file('icon');
         $ext=$image->getClientOriginalExtension();
@@ -55,10 +58,22 @@ class HomeController extends Controller
     }
 
     public function clearUserIcon(){
+        $this->deleteUserIcon();
+
         $user=Auth::user();
         $user->icon=null;
         $user->save();
 
         return redirect()->back();
+    }
+
+    private function deleteUserIcon(){
+        $user=Auth::user();
+        try{
+            $fileName=$user->icon;
+            $file=storage_path('app/public/icon/'.$fileName);
+            File::delete($file);
+        }catch(\Exception $e){}
+        
     }
 }
